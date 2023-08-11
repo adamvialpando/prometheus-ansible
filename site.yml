@@ -1,0 +1,13 @@
+---
+- hosts: prometheus_hosts-test
+  become: true  
+  # ignore_errors: true
+  roles:
+    - prometheus
+
+- hosts: node_exporter_hosts-test
+  become: true  
+  roles:
+    - node-exporter
+
+   

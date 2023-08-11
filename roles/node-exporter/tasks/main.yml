@@ -1,0 +1,45 @@
+---
+- name: Ensure Docker is running
+  service:
+    name: docker
+    state: started
+
+- name: Pull node-exporter Docker image
+  docker_image:
+    name: prom/node-exporter:latest
+    source: pull
+
+- name: Run node-exporter container
+  docker_container:
+    name: node-exporter
+    image: prom/node-exporter:latest
+    state: started
+    restart: yes
+    restart_policy: always
+    published_ports:
+      - "9100:9100"
+    volumes:
+      - "/proc:/host/proc:ro"
+      - "/sys:/host/sys:ro"
+      - "/:/rootfs:ro"
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.rootfs=/rootfs'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+
+- name: Ensure node-exporter container is running
+  shell: docker ps | grep node-exporter
+  register: node_exporter_container
+  until: node_exporter_container.stdout.find('node-exporter') != -1
+  retries: 10
+  delay: 5
+  ignore_errors: true
+  tags: node-exporter
+
+- name: Check for node-exporter job in prometheus.yml
+  shell: grep -i node-exporter /etc/prometheus/prometheus.yml
+  register: node_exporter_job
+  failed_when: false
+  changed_when: false
+  tags: node-exporter

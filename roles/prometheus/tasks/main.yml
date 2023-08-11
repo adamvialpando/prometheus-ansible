@@ -1,0 +1,30 @@
+---
+- import_tasks: prereqs.yml
+
+- import_tasks: install.yml
+
+- import_tasks: configure.yml
+
+# Copy the Prometheus configuration file to the remote host
+
+# Run the Prometheus container
+# - name: Run Prometheus container
+#   docker_container:
+#     name: prometheus
+#     image: prom/prometheus:latest
+#     state: started
+#     restart: yes
+#     restart_policy: always
+#     published_ports:
+#       - "9090:9090"
+#     volumes:
+#       - "./prometheus.yml:/etc/prometheus/prometheus.yml"
+#       - "prometheus_data:/prometheus"
+
+- name: Ensure Prometheus container is running
+  shell: docker ps | grep prometheus
+  register: prometheus_container
+  until: prometheus_container.stdout.find('prometheus') != -1
+  retries: 5
+  delay: 2
+  ignore_errors: true

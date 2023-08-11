@@ -1,0 +1,25 @@
+[Unit]
+Description=Prometheus Node Exporter
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+User=node-exporter
+Group=node-exporter
+Type=simple
+ExecStart=/usr/local/bin/node_exporter
+
+# Make sure to restart the process if it crashes
+Restart=on-failure
+
+# Specifies the maximum file descriptor number that can be opened by this process
+LimitNOFILE=4096
+
+# Disable sending OOM kill requests for this service
+OOMScoreAdjust=-1000
+
+# Adjust nice value (priority)
+Nice=-20
+
+[Install]
+WantedBy=multi-user.target

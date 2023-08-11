@@ -1,0 +1,37 @@
+---
+# create prometheus config directory
+- name: create prometheus config directory
+  file:
+    path: /etc/prometheus
+    state: directory
+    mode: 0755
+
+# copy prometheus config file
+- name: copy prometheus config file
+  copy:
+    src: prometheus.yml
+    dest: /etc/prometheus/prometheus.yml
+    mode: 0644
+
+# create prometheus data directory
+- name: create prometheus data directory
+  file:
+    path: /var/lib/prometheus
+    state: directory
+    mode: 0755
+
+# create prometheus log directory
+- name: create prometheus log directory
+  file:
+    path: /var/log/prometheus
+    state: directory
+    mode: 0755
+
+# # create prometheus service file
+# - name: create prometheus service file
+#   template:
+#     src: prometheus.service.j2
+#     dest: /etc/systemd/system/prometheus.service
+#     owner: root
+#     group: root
+#     mode: 0644  

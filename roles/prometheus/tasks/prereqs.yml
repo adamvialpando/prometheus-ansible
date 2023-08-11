@@ -1,0 +1,51 @@
+---
+# this task check to see if docker is installed, and if not, it was signal to install it.
+
+# - name: Check if Docker is installed in common paths
+#   stat:
+#     path: "{{ item }}"
+#   loop:
+#     - /usr/bin/docker
+#     - /usr/local/bin/docker  
+#   register: docker_installed_results
+#   failed_when: false
+#   changed_when: false
+
+- name: Check if Docker is installed
+  command: docker -v
+  register: docker_installed_result
+  failed_when: false
+  changed_when: false
+
+- name: Print message if Docker is not installed
+  debug:
+    msg: "Docker is not installed. Please install docker and re-run this playbook."
+  when: docker_installed_result.rc != 0
+
+- name: Checking if Docker is running
+  command: docker ps
+  register: docker_running_result
+  failed_when: false
+  changed_when: false
+
+- block:
+    - name: Start Docker service
+      service:
+        name: docker
+        state: started
+        enabled: true
+      when: docker_running_result.rc != 0
+
+    - name: Print message if Docker is not running
+      debug:
+        msg: "Docker didn't start. Trying to start Docker manually."
+      when: docker_running_result.rc != 0
+
+    - name: Start Docker manually
+      command: sudo nohup dockerd &
+      when: docker_running_result.rc != 0
+
+    - name: Print message if Docker is not able to start
+      debug:
+        msg: "Docker is not able to start. Please start Docker and re-run this playbook."
+      when: docker_running_result.rc != 0

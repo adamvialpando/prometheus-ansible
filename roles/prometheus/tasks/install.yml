@@ -1,0 +1,24 @@
+---
+# Pull the latest Prometheus image
+- name: Pull Prometheus Docker image
+  docker_image:
+    name: prom/prometheus:latest
+    source: pull
+    state: present
+  
+# start prometheus container 
+- name: Launch prometheus container
+  docker_container:
+    name: prometheus
+    image: prom/prometheus:latest
+    restart_policy: always
+    ports:
+      - "9090:9090"
+    volumes:
+      - /etc/prometheus:/etc/prometheus
+      - /var/lib/prometheus:/prometheus
+      - /var/log/prometheus:/var/log/prometheus
+    state: started
+    restart: yes
+    recreate: yes
+    pull: yes

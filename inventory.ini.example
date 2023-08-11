@@ -1,0 +1,21 @@
+[prometheus_hosts]
+prometheus_host_1 ansible_ssh_host=127.0.0.1
+
+[node_exporter_hosts]
+node_exporter_host_1 ansible_ssh_host=127.0.0.1
+
+# docker test hosts
+[prometheus_hosts-test]
+192.168.5.209 ansible_ssh_port=2222 ansible_ssh_user=root ssh_private_key_file=$ssh_private_key_file
+
+[node_exporter_hosts-test]
+192.168.5.209 ansible_ssh_port=2222 ansible_ssh_user=root ssh_private_key_file=$ssh_private_key_file
+
+[docker_test_hosts:children]
+prometheus_hosts-test
+node_exporter_hosts-test
+
+# You can also define common variables for hosts here
+[all:vars]
+# ansible_ssh_user=myuser
+# ansible_ssh_pass=mypassword

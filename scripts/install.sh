@@ -68,9 +68,10 @@ fi
 #     done
 # fi
 
-# Install Prometheus if required
+# Install Prometheus if required and create a restart policy
+
 if [ "$prom_install" = "true" ]; then
-    $is_root && docker run -d -p 9090:9090 --name prometheus-server -v /etc/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml prom/prometheus:latest || sudo docker run -d -p 9090:9090 --name prometheus-server -v /etc/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml prom/prometheus:latest
+    $is_root && docker run -d --restart unless-stopped -p 9090:9090 --name prometheus-server -v /etc/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml prom/prometheus:latest || sudo docker run -d --restart unless-stopped -p 9090:9090 --name prometheus-server -v /etc/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml prom/prometheus:latest
     summary+=("Prometheus server installed: Yes")
 else
     summary+=("Prometheus server installation skipped")
@@ -84,7 +85,7 @@ else
 fi
 
 if [ "$node_exporter_exists" == "no" ]; then
-    $is_root && docker run -d --name node-exporter -p 9100:9100 prom/node-exporter || sudo docker run -d --name node-exporter -p 9100:9100 prom/node-exporter
+    $is_root && docker run -d --restart unless-stopped --name node-exporter -p 9100:9100 prom/node-exporter || sudo docker run -d --restart unless-stopped --name node-exporter -p 9100:9100 prom/node-exporter
     summary+=("Node exporter container started: Yes")
 else
     summary+=("Node exporter container already running")

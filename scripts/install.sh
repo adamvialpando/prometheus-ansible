@@ -4,10 +4,17 @@ set -e
 
 declare -a summary
 
-# Check for CLI argument
+# Check for prometheus install parameter
+update=false
 prom_install=false
 if [ "$#" -ge 1 ] && [ "$1" == "prom" ]; then
     prom_install=true
+
+fi
+
+# Check for update parameter
+if [ "$#" -ge 1 ] && [ "$1" == "update" ]; then
+    update=true
 fi
 
 summary+=("CLI argument for Prometheus installation: $prom_install")
@@ -44,32 +51,6 @@ else
     fi
 fi
 
-# Check Prometheus servers from hosts.ini
-# Commenting out for now as it is not required. 
-
-# prometheus_servers=($(awk -F'=' '/\[prometheus\]/{a=1}a==1&&$1~/^[0-9a-zA-Z]/ {print $1}' hosts.ini))
-# if [ ${#prometheus_servers[@]} -eq 0 ]; then
-#     summary+=("Number of Prometheus servers listed in hosts.ini: 0")
-# else
-#     summary+=("Number of Prometheus servers listed in hosts.ini: ${#prometheus_servers[@]}")
-#     for prometheus_server in "${prometheus_servers[@]}"
-#     do
-#         if [[ ! $prometheus_server =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-#             echo "Invalid Prometheus server address: $prometheus_server"
-#             continue
-#         fi
-#         prometheus_server_reachable=$(curl -s -o /dev/null -w '%{http_code}' http://$prometheus_server:9090/)
-#         if [ "$prometheus_server_reachable" -eq 200 ]; then
-#             summary+=("Prometheus server $prometheus_server reachable: Yes")
-#         else
-#             echo "Prometheus server $prometheus_server is not reachable. Please check if the Prometheus server is running and run the script again."
-#             summary+=("Prometheus server $prometheus_server reachable: No")
-#         fi
-#     done
-# fi
-
-# Install Prometheus if required and create a restart policy
-
 if [ "$prom_install" = "true" ]; then
     $is_root && docker run -d --restart unless-stopped -p 9090:9090 --name prometheus-server -v /etc/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml prom/prometheus:latest || sudo docker run -d --restart unless-stopped -p 9090:9090 --name prometheus-server -v /etc/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml prom/prometheus:latest
     summary+=("Prometheus server installed: Yes")
@@ -90,6 +71,24 @@ if [ "$node_exporter_exists" == "no" ]; then
 else
     summary+=("Node exporter container already running")
 fi
+
+# check if we're updating node exporter
+if [ "$update" = "true" ]; then
+    $is_root && docker stop node-exporter || sudo docker stop node-exporter
+    $is_root && docker rm node-exporter || sudo docker rm node-exporter
+    $is_root && docker run -d --restart unless-stopped --name node-exporter -p 9100:9100 prom/node-exporter || sudo docker run -d --restart unless-stopped --name node-exporter -p 9100:9100 prom/node-exporter
+    summary+=("Node exporter container updated: Yes")
+else
+    summary+=("Node exporter container update skipped")
+fi
+
+# check for cadvisor container
+# if $is_root; then
+#     cadvisor_exists=$(docker ps -a | grep -q cadvisor && echo "yes" || echo "no")
+# else
+#     cadvisor_exists=$(sudo docker ps -a | grep -q cadvisor && echo "yes" || echo "no")
+# fi
+
 
 # Display summary
 echo -e "\n------- Summary -------"

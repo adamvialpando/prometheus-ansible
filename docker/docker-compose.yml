@@ -52,13 +52,5 @@ services:
     restart: unless-stopped
     ports:
       - 3000:3000
-    # volumes:
-    #   # - grafana_data:/var/lib/grafana
-    #   - ./grafana/provisioning:/etc/grafana/provisioning
-    volumes:
-      - grafana_data:/var/lib/grafana
-    environment:
-      - GF_SECURITY_ADMIN_USER="enter_your_username_here"
-      - GF_SECURITY_ADMIN_PASSWORD="enter_your_password_here"
     networks:
       - monitoring
